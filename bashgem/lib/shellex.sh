@@ -48,6 +48,8 @@ exscreen()
 	multiuser on
 	hardstatus on
 	hardstatus alwayslastline 
+	defencoding UTF-8
+	encoding UTF-8 GBK
 	hardstatus string "%{= kG}%-w%{.cW}%n %t%{-}%+w %=%{= kG} %H %{..Y} %Y/%m/%d %c"
 	logfile '"/tmp/${USER}_${s:=$USER}.log"'	
 	' > $tmp
