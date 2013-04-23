@@ -1,0 +1,10 @@
+# A sample Gemfile
+source "https://rubygems.org"
+
+gem "rails"
+gem 'xml-simple'
+gem 'rest-client'
+gem 'bundle'
+gem 'rake'
+gem 'ffi'
+
