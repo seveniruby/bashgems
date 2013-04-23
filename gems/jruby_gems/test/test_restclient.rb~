@@ -1,4 +1,0 @@
-require "rubygems"
-require 'bundler/setup'
-
-p RestClient.get 'http://www.baidu.com'
