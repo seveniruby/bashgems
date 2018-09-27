@@ -65,6 +65,13 @@ ps_ex()
         ps -o uname,pid,ppid,thcount,ni,pri,psr,pcpu,pmem,rss,vsz,sz,start_time,time,comm,c,command "$@"
 }
 
+#use some command with proxy
+#proxy npm install -g appium
+proxy ()
+{
+    local http_proxy="";
+    http_proxy=http://fq.testerhome.com:`date +6%m%d` https_proxy=$http_proxy "$@"
+}
 
 
 
