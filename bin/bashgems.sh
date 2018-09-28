@@ -11,15 +11,14 @@
 pp()
 {
     local kkk vvv count=$# i
-    #while [[ -n "$1" ]]
+    #while [ -n "$1" ]
     for((i=1;i<=$count;i++))
     do
-        [[ -z "$1" ]] && shift && continue
+        [ -z "$1" ] && shift && continue
         kkk="${1:1}"
-        if [[ "${1:0:1}" = '-' && "$1" == -[a-zA-Z]* ]] then
+        if [ "${1:0:1}" = '-' -a  "$1" == -[a-zA-Z]* ] then
             eval "$kkk=\"${2//\"/\\\"}\""  #unset the var and set value to it
         fi
-        
         shift;
     done
 }
@@ -31,10 +30,11 @@ bashgems_install()
     wget https://github.com/seveniruby/bashgems/archive/master.zip -O /tmp/bashgems.zip
     unzip /tmp/bashgems.zip -d /tmp/bashgems
     mv /tmp/bashgems/bashgems-master/ ~/.bashgems
-    echo '[ -f  ~/.bashgems/bin/bashgems.sh ] && . ~/.bashgems/bin/bashgems.sh' >>  ~/.bash_profile
+    echo append to ~/.bash_profile
+    echo '[ -f  ~/.bashgems/bin/bashgems.sh -a -z "$BASHGEMS_HOME" ] && . ~/.bashgems/bin/bashgems.sh' >>  ~/.bash_profile
     echo load bashgems
     . ~/.bash_profile
-    echo test now you can use some enhance function
+    echo test by install appium
     proxy npm install -g appium --verbose
 }
 
@@ -53,36 +53,36 @@ bgem()
 {
     local source install uninstall load info use list=_ remote=_ update=_  publish=_ m=_
     
-    if [[ $# != 0 ]]
+    if [ $# != 0 ]
     then
         pp "$@"
-        if [[ -n "$source" ]]
+        if [ -n "$source" ]
         then
             GEMS_SITE=$source
         fi
-        if [[ -n "$install" ]]
+        if [ -n "$install" ]
         then
             svn co "$GEMS_SITE/$install" $BASHGEMS_HOME/gems/$install
         fi
-        if [[ -n "$uninstall" ]]
+        if [ -n "$uninstall" ]
         then
             rm $BASHGEMS_HOME/gems/$uninstall -rf
         fi
         #bgem -update unittest
         #bgem -update
-        if [[ _ != "$update"  && -n "$update" ]]
+        if [ _ != "$update"  && -n "$update" ]
         then
             svn up $BASHGEMS_HOME/gems/$update
         fi
-        if [[ -z "$update"  ]]
+        if [ -z "$update"  ]
         then
             find $BASHGEMS_HOME/gems/ -type d -maxdepth 1  |xargs svn up
         fi
         
         #bgem -list
-        if [[  "$list" != _  ]]
+        if [  "$list" != _  ]
         then
-            if [[ "$remote" != _ ]]
+            if [ "$remote" != _ ]
             then
                 for s in $GEMS_SITE
                 do
@@ -94,22 +94,22 @@ bgem()
         fi
         #bgem -load cpptest
         #bgem -load app/iknow/.init.sh
-        if [[ -n "$load" ]]
+        if [ -n "$load" ]
         then
-            [[ -f $BASHGEMS_HOME/gems/$load/$load.sh ]] && . $BASHGEMS_HOME/gems/$load/$load.sh
-            [[ -f $BASHGEMS_HOME/gems/$load/.bgem ]] && . $BASHGEMS_HOME/gems/$load/.bgem
+            [ -f $BASHGEMS_HOME/gems/$load/$load.sh ] && . $BASHGEMS_HOME/gems/$load/$load.sh
+            [ -f $BASHGEMS_HOME/gems/$load/.bgem ] && . $BASHGEMS_HOME/gems/$load/.bgem
         fi
-        if [[ -n "$use" ]]
+        if [ -n "$use" ]
         then
             bgem -install $use
             bgem -load $use
         fi
         
-        if [[ -n "$info" ]]
+        if [ -n "$info" ]
         then
             svn log $BASHGEMS_HOME/gems/$info
         fi
-        if [[  "$publish" != _ && "$m" != _ ]]
+        if [  "$publish" != _ && "$m" != _ ]
         then
             cd $publish && cd $OLDPWD || { echo "Error $publish , is it write?";return; }
             gem_name=`echo $OLDPWD|awk -F/ '{print $NF}'`
@@ -138,12 +138,12 @@ bgem_init()
     echo "TTF: https://testerhome.com/topics/15522"
     echo "BashGems: https://github.com/seveniruby/bashgems.git"
     [ -f $BASHGEMS_HOME/lib/shellex.sh ] && . $BASHGEMS_HOME/lib/shellex.sh
-    #[[ -d $BASHGEMS_HOME/gems/ruby ]] && bgem -load ruby
+    #[ -d $BASHGEMS_HOME/gems/ruby ] && bgem -load ruby
     :
 }
 
 #########################
-[[ -z "$BASHGEMS_HOME" ]] && export BASHGEMS_HOME=~/.bashgems
+[ -z "$BASHGEMS_HOME" ] && export BASHGEMS_HOME=~/.bashgems
 #export BASHGEMS_SITE=https://sihanjishu.googlecode.com/svn/trunk/bashgems/
 export GEMS_SITE='https://svn.baidu.com/app-test/search/sep/trunk/bashgems/gems/'
 export BASHGEM_SITE='https://svn.baidu.com/app-test/search/sep/trunk/bashgems/bashgem'
