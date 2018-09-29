@@ -6,28 +6,17 @@
 ## Get Start
 quick install
 ```bash
-# install
-wget https://github.com/seveniruby/bashgems/archive/master.zip -O /tmp/bashgems.zip
-unzip /tmp/bashgems.zip -d /tmp/bashgems
-mv /tmp/bashgems/bashgems-master/ ~/.bashgems
-echo '[ -f  ~/.bashgems/bin/bashgems.sh ] && . ~/.bashgems/bin/bashgems.sh' >>  ~/.bash_profile
-# load bashgems
-. ~/.bash_profile
-# now you can use some enhance function
-proxy npm install -g appium --verbose
+eval "$(curl https://raw.githubusercontent.com/seveniruby/bashgems/master/bin/bashgems.sh);bashgems_install"
 ```
 
-
-use github to install
-```shell
-# download
-git clone https://github.com/seveniruby/bashgems.git ~/.bashgems
-# add to shell profile for auto load
-echo '[ -f  ~/.bashgems/bin/bashgems.sh ] && . ~/.bashgems/bin/bashgems.sh' >>  ~/.bash_profile
-# load bashgems
-. ~/.bash_profile
-# now you can use some enhance function 
+## Use
+```bash
+# 霍格沃兹测试工具包，显示所有的学院提供的帮助命令
+hogwarts help
+# 更便捷的安装appium 
 proxy npm install -g appium --verbose
+# 显示chromedriver与chrome的版本对应关系和下载地址
+chromedriver_download
 ```
 为了让测试工程师安装自动化测试工具更方便，我们提供了proxy命令来确保安装顺利。
 更多功能详见代码。
