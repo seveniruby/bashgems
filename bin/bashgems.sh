@@ -4,10 +4,12 @@
 #user:yansheng.huangys
 #date:200910302209
 #cat:bash
+# use pp "$@" in your script or function
 #pp -p 1 -s 2 -d
 #then the result is
 #p=1 s=2 d=""
 #so you can use it in your functions for parameters parsing
+#todo: add help method
 pp() {
 	local kkk vvv count=$# i
 	for ((i = 1; i <= $count; i++)); do
@@ -21,16 +23,14 @@ pp() {
 }
 
 bashgems_install() {
-	echo install
-	wget https://github.com/seveniruby/bashgems/archive/master.zip -O /tmp/bashgems.zip
-	unzip /tmp/bashgems.zip -d /tmp/bashgems
-	mv /tmp/bashgems/bashgems-master/ ~/.bashgems
-	echo append to ~/.bash_profile
-	echo '[ -f  ~/.bashgems/bin/bashgems.sh -a -z "$BASHGEMS_HOME" ] && . ~/.bashgems/bin/bashgems.sh' >>~/.bash_profile
-	echo load bashgems
+	local date=$(date +%Y%m%d)
+	[ -f /tmp/bashgems_$date.zip ] || wget https://github.com/seveniruby/bashgems/archive/master.zip -O /tmp/bashgems_$date.zip
+	unzip -o /tmp/bashgems_$date.zip -d /tmp/bashgems_$date
+	[ -d ~/.bashgems ] || mkdir ~/.bashgems
+	find /tmp/bashgems_$date/bashgems-master -maxdepth 1 -mindepth 1 -exec cp -rf {} ~/.bashgems/ \;
+	grep bashgems.sh ~/.bash_profile || echo '[ -f  ~/.bashgems/bin/bashgems.sh ] && . ~/.bashgems/bin/bashgems.sh' >> ~/.bash_profile
 	. ~/.bash_profile
-	echo test by install appium
-	proxy npm install -g appium --verbose
+	[ -n "$BASHGEMS_HOME" ] && echo success
 }
 
 logo() {
@@ -43,90 +43,18 @@ logo() {
 #
     '
 }
-bgem() {
-	local source install uninstall load info use list=_ remote=_ update=_ publish=_ m=_
-
-	if [ $# != 0 ]; then
-		pp "$@"
-		if [ -n "$source" ]; then
-			GEMS_SITE=$source
-		fi
-		if [ -n "$install" ]; then
-			svn co "$GEMS_SITE/$install" $BASHGEMS_HOME/gems/$install
-		fi
-		if [ -n "$uninstall" ]; then
-			rm $BASHGEMS_HOME/gems/$uninstall -rf
-		fi
-		#bgem -update unittest
-		#bgem -update
-		if [ _ != "$update" && -n "$update" ]; then
-			svn up $BASHGEMS_HOME/gems/$update
-		fi
-		if [ -z "$update" ]; then
-			find $BASHGEMS_HOME/gems/ -type d -maxdepth 1 | xargs svn up
-		fi
-
-		#bgem -list
-		if [ "$list" != _ ]; then
-			if [ "$remote" != _ ]; then
-				for s in $GEMS_SITE; do
-					svn list $s
-				done
-			else
-				find $BASHGEMS_HOME/gems/ -type d -maxdepth 1
-			fi
-		fi
-		#bgem -load cpptest
-		#bgem -load app/iknow/.init.sh
-		if [ -n "$load" ]; then
-			[ -f $BASHGEMS_HOME/gems/$load/$load.sh ] && . $BASHGEMS_HOME/gems/$load/$load.sh
-			[ -f $BASHGEMS_HOME/gems/$load/.bgem ] && . $BASHGEMS_HOME/gems/$load/.bgem
-		fi
-		if [ -n "$use" ]; then
-			bgem -install $use
-			bgem -load $use
-		fi
-
-		if [ -n "$info" ]; then
-			svn log $BASHGEMS_HOME/gems/$info
-		fi
-		if [ "$publish" != _ && "$m" != _ ]; then
-			cd $publish && cd $OLDPWD || {
-				echo "Error $publish , is it write?"
-				return
-			}
-			gem_name=$(echo $OLDPWD | awk -F/ '{print $NF}')
-			echo "run this commond to publish"
-			echo svn import $publish "$GEMS_SITE/$gem_name" -m \"$m\"
-		fi
-	else
-		echo '
-    bgem -list
-    bgem -install btest
-    bgem -uninstall btest
-    bgem -source http://www.git.com
-        '
-	fi
-}
-
-bashgem() {
-	bgem "$@"
-}
-
-bgem_init() {
+bashgems_init() {
 	logo
 	echo "TesterHome: https://testerhome.com"
 	echo "TTF: https://testerhome.com/topics/15522"
 	echo "BashGems: https://github.com/seveniruby/bashgems.git"
+	echo 
 	[ -f $BASHGEMS_HOME/lib/shellex.sh ] && . $BASHGEMS_HOME/lib/shellex.sh
-	#[ -d $BASHGEMS_HOME/gems/ruby ] && bgem -load ruby
+	[ -f $BASHGEMS_HOME/lib/hogwarts.sh ] && . $BASHGEMS_HOME/lib/hogwarts.sh
 	:
 }
 
 #########################
 [ -z "$BASHGEMS_HOME" ] && export BASHGEMS_HOME=~/.bashgems
-#export BASHGEMS_SITE=https://sihanjishu.googlecode.com/svn/trunk/bashgems/
-export GEMS_SITE='https://svn.baidu.com/app-test/search/sep/trunk/bashgems/gems/'
-export BASHGEM_SITE='https://svn.baidu.com/app-test/search/sep/trunk/bashgems/bashgem'
-bgem_init "$@"
+bashgems_init "$@"
 :
