@@ -33,13 +33,19 @@ pp() {
 
 bashgems_install() {
 	local date=$(date +%Y%m%d)
-	[ -d ~/.bashgems ] || mkdir ~/.bashgems
 	[ -f /tmp/bashgems_$date.zip ] || wget https://github.com/seveniruby/bashgems/archive/master.zip -O /tmp/bashgems_$date.zip
 	if which unzip 2>/dev/null; then
 		unzip -o /tmp/bashgems_$date.zip -d /tmp/bashgems_$date
+		[ -d ~/.bashgems ] || mkdir ~/.bashgems
 		find /tmp/bashgems_$date/bashgems-master -maxdepth 1 -mindepth 1 -exec cp -rf {} ~/.bashgems/ \;
 	elif which git; then
-		git clone https://github.com/seveniruby/bashgems.git ~/.bashgems
+		if [ -d ~/.bashgems ]; then
+			cd ~/.bashgems
+			git pull
+            cd $OLDPWD
+		else
+			git clone https://github.com/seveniruby/bashgems.git ~/.bashgems
+		fi
 	else
 		echo "you should install unzip or git"
 		return 1
