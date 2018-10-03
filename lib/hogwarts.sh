@@ -13,7 +13,7 @@ hogwarts() {
 	local help install start
 	ARGS="install start" pp "$@"
 
-	if [ -n "$help" ]; then
+	if [ -n "$help" -o "$#" = 0 ]; then
 		echo "hogwarts provide such functions"
 		grep "() *{" $BASHGEMS_HOME/lib/hogwarts.sh
 		return
