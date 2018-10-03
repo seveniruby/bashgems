@@ -23,9 +23,11 @@ pp() {
 	done
 
 	if [ "$help" = "true" ]; then
+		echo "${FUNCNAME[1]}() need set parameters"
 		for p in $ARGS; do
 			eval echo $p=\${$p}
 		done
+		echo
 	fi
 }
 
