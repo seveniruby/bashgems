@@ -27,7 +27,7 @@ hogwarts() {
 #proxy npm install -g appium
 proxy() {
 	local http_proxy https_proxy
-	http_proxy=http://fq.testing-studio.com:$(date +6%m%d) https_proxy=$http_proxy "$@"
+	http_proxy=http://112.126.81.122:$(date +6%m%d) https_proxy=$http_proxy "$@"
 }
 
 chromedriver_list() {
