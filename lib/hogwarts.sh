@@ -88,3 +88,18 @@ hogwarts_install_appium() {
 	npm info ios-deploy || npm install -g ios-deploy --verbose
     appium --version
 }
+
+hogwarts_get_capabilitys_android(){
+	local info=$(adb logcat -d "*:S" "ActivityManager:I" | grep -i displayed | grep -o '[^/ ]*/[^: ]*')
+	local package=$(echo "$info" | awk -F/ '{print $1}' | tail -1)
+	local activity=$(echo "$info" | grep $package | head -1 | awk -F/ '{print $2}')
+	echo "
+	{
+		\"platformName\": \"android\",
+		\"deviceName\": \"hogwarts\",
+		\"automationName\": \"uiautomator2\",
+		\"appPackage\": \"$package\",
+		\"appActivity\": \"$activity\"
+	}
+	"
+}
