@@ -51,10 +51,10 @@ Hogwarts_start_stf() {
 }
 
 hogwarts_install_jenkins() {
-	local image=registry.docker-cn.com/jenkins/jenkins:lts
+	local image=jenkins/jenkins:lts
 	docker run -ti --rm --entrypoint="/bin/bash" $image -c "whoami && id"
 	echo "maybe you need chown -R 1000 ~/jenkins/hogwarts"
-	docker run --name jenkins_hogwarts \
+	docker run -d --name jenkins_hogwarts \
 		-p 8080:8080 -p 50000:50000 \
 		-v ~/jenkins/hogwarts:/var/jenkins_home \
 		$image
@@ -102,4 +102,13 @@ hogwarts_get_capabilitys_android(){
 		\"appActivity\": \"$activity\"
 	}
 	"
+}
+
+hogwarts_list_avds(){
+	
+}
+
+hogwarts_start_avd(){
+	local name=$(emulator -list-avds | grep $1)
+	(cd $(dirname $(which emulator));emulator @$name)
 }
