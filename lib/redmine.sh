@@ -1,6 +1,8 @@
+redmine_token=""
+
 redmine() {
     curl -s -H "Content-Type: application/json" \
-        -H "X-Redmine-API-Key: 3c10cdf7818cdca2644a956d870e28b2a491d649" \
+        -H "X-Redmine-API-Key: $redmine_token" \
         "http://39.106.113.77:8888/$@"
 }
 
@@ -134,12 +136,18 @@ chat() {
     echo "$content" >>/tmp/chat.log
     local uid=110
     local project_id=""
+    local robot_id=""
+    local robot_name=""
 
     local token=$(echo "$content" | jq -r '.data.token')
     if [ "$token" = '5ce60ee4377f5461bc9798a5' ]; then
         project_id=sales
+        robot_id=wxid_zoz2ij5n4pmo22
+        robot_name="jasmine"
     else
         project_id=testerhome_chat
+        robot_id=$token
+        robot_name="TesterHome小助手"
     fi
 
     local talk_room=$(echo "$content" | jq -r '.data.roomTopic')
@@ -153,8 +161,8 @@ chat() {
         mention_name=${mention_name#@}
     }
     if [ -z "$talk_room" ]; then
-        mention_id="$token"
-        mention_name="机器人"
+        mention_id=$robot_id
+        mention_name=$robot_name
     fi
     issue_create_if_not_exist $talk_id $talk_name
     issue_note "$talk_content"
@@ -177,6 +185,9 @@ cgi() {
         read -n $CONTENT_LENGTH post
         . /root/redmine/redmine.sh
         chat "$post"
+    else
+        env | grep _
+
     fi
 }
 
@@ -184,7 +195,6 @@ test_chat() {
     chat '{"data":{"messageId":"1669214560","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"学员群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"石家庄-2-山长水远","contactId":"wxid_0rgcuauwbk9422","payload":{"text":"@霍格沃兹测试学院助教-歌舞升平 老师，有docker for MAC包么？","mention":["wxid_ly0llwqa8zzj22"]},"type":7,"timestamp":1563951585000,"token":"5ce60ee4377f5461bc9798a5"}}'
     chat '{"data":{"messageId":"1669214567","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"学员群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"霍格沃兹测试学院助教-歌舞升平","contactId":"wxid_ly0llwqa8zzj22","payload":{"text":"brew cask install docker"},"type":7,"timestamp":1563951651000,"token":"5ce60ee4377f5461bc9798a5"}}'
     chat '{"data":{"messageId":"1669214572","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"学员群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"霍格沃兹测试学院助教-歌舞升平","contactId":"wxid_ly0llwqa8zzj22","payload":{"text":"@石家庄-2-山长水远","mention":["wxid_0rgcuauwbk9422"]},"type":7,"timestamp":1563951678000,"token":"5ce60ee4377f5461bc9798a5"}}'
-
     chat '{"data":{"messageId":"1669214560","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"咨询1群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"石家庄-2-山长水远","contactId":"wxid_0rgcuauwbk9422","payload":{"text":"@霍格沃兹测试学院助教-歌舞升平 老师，有docker for MAC包么？","mention":["wxid_ly0llwqa8zzj22"]},"type":7,"timestamp":1563951585000,"token":"5ce60ee4377f5461bc9798a5"}}'
 
 }
