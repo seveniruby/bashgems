@@ -1,4 +1,5 @@
-redmine_token=""
+#redmine_token=""
+export redmine_token=3c10cdf7818cdca2644a956d870e28b2a491d649
 
 redmine() {
     curl -s -H "Content-Type: application/json" \
@@ -95,6 +96,9 @@ issue_note() {
 issue_create_if_not_exist() {
     each_id=$1
     each_name=$2
+    issue_id=""
+    cache_load $project_id $each_id
+    [ -n "$issue_id" ] && return
     issue_find "issues.json?project_id=$project_id&cf_15=$each_id"
     if [ "$issue_id" = null ]; then
         local data='
@@ -114,9 +118,21 @@ issue_create_if_not_exist() {
         redmine issues.json -XPOST -d "$data"
         issue_find "issues.json?project_id=$project_id&cf_15=$each_id"
     fi
+    cache_save $project_id $each_id $issue_id
+}
+
+cache_save(){
+    echo "$@" >> /tmp/issue_find.cache
+}
+cache_load(){
+    local d="$@"
+    issue_id=$(grep "$d " /tmp/issue_find.cache | awk '{print $NF}')
 }
 
 issue_change_tracker() {
+    [ $# -lt 2 ] && echo "issue_change_tracker wxid nickname" && return 1
+    local talk_id=$1
+    local talk_name=$2
     issue_find "issues.json?project_id=$project_id&cf_15=$talk_id"
     local tracker_id=10
     redmine "issues/${issue_id}.json" -XPUT -d '
@@ -155,26 +171,50 @@ chat() {
     local talk_id=$(echo "$content" | jq -r '.data.contactId')
     local talk_text=$(echo "$content" | jq -r '.data.payload.text')
     local talk_content="$talk_room | $talk_name: $talk_text"
-    local mention_id=$(echo "$content" | jq -r '.data.payload.mention[0]')
-    [ "$mention_id" = null ] || {
-        local mention_name=${talk_text%% *}
-        mention_name=${mention_name#@}
-    }
-    if [ -z "$talk_room" ]; then
-        mention_id=$robot_id
-        mention_name=$robot_name
+    local member_role
+    if echo "$talk_room" | grep "咨询.*霍格" &>/dev/null; then
+        member_role=sales
+    elif echo "$talk_room" | grep "会员.*霍格" &>/dev/null; then
+        member_role=vip
+    else
+        member_role=other
     fi
-    issue_create_if_not_exist $talk_id $talk_name
-    issue_note "$talk_content"
 
-    echo "$talk_room" | grep "咨询.*霍格" &>/dev/null && issue_change_tracker
-
-    #todo: 将来可能会有多个at人
-    echo -e "$mention_id $mention_name" | while read each_id each_name; do
-        [ "$each_id" = null ] && continue
-        issue_create_if_not_exist $each_id $each_name
+    #直接聊天
+    if [ -z "$talk_room" ]; then
+        issue_create_if_not_exist $robot_id $robot_name
         issue_note "$talk_content"
-    done
+
+        issue_create_if_not_exist $talk_id $talk_name
+        issue_note "$talk_content"
+    else
+        #群邀请
+        if [ -z "$talk_id" ]; then
+            local invitor_id=$(echo "$content" | jq -r '.data.payload.subPayload.inviteeList[]|.wxid')
+            local invitor_name=$(echo "$content" | jq -r '.data.payload.subPayload.inviteeList[]|.displayName')
+            issue_create_if_not_exist $invitor_id "$invitor_name"
+            issue_note "$talk_content"
+            [ "$member_role" = sales ] && issue_change_tracker $invitor_id "$invitor_name"
+
+        else
+            #群聊
+            if [ "$talk_id" != null ]; then
+                issue_create_if_not_exist $talk_id "$talk_name"
+                issue_note "$talk_content"
+                [ "$member_role" = sales ] && issue_change_tracker $talk_id "$talk_name"
+            fi
+
+            #提醒
+            local mention_id=$(echo "$content" | jq -r '.data.payload.mention[0]')
+            if [ "$mention_id" != null ]; then
+                local mention_name=${talk_text%% *}
+                mention_name=${mention_name#@}
+                issue_create_if_not_exist $mention_id "$mention_name"
+                issue_note "$talk_content"
+            fi
+        fi
+
+    fi
 
 }
 
@@ -185,9 +225,6 @@ cgi() {
         read -n $CONTENT_LENGTH post
         . /root/redmine/redmine.sh
         chat "$post"
-    else
-        env | grep _
-
     fi
 }
 
@@ -196,10 +233,15 @@ test_chat() {
     chat '{"data":{"messageId":"1669214567","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"学员群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"霍格沃兹测试学院助教-歌舞升平","contactId":"wxid_ly0llwqa8zzj22","payload":{"text":"brew cask install docker"},"type":7,"timestamp":1563951651000,"token":"5ce60ee4377f5461bc9798a5"}}'
     chat '{"data":{"messageId":"1669214572","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"学员群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"霍格沃兹测试学院助教-歌舞升平","contactId":"wxid_ly0llwqa8zzj22","payload":{"text":"@石家庄-2-山长水远","mention":["wxid_0rgcuauwbk9422"]},"type":7,"timestamp":1563951678000,"token":"5ce60ee4377f5461bc9798a5"}}'
     chat '{"data":{"messageId":"1669214560","chatId":"5cde899abd6faa1c4e19c49b","talk_roomTopic":"咨询1群-10期测试开发-霍格沃兹","talk_roomId":"9438271953@chattalk_room","contacttalk_Name":"石家庄-2-山长水远","contactId":"wxid_0rgcuauwbk9422","payload":{"text":"@霍格沃兹测试学院助教-歌舞升平 老师，有docker for MAC包么？","mention":["wxid_ly0llwqa8zzj22"]},"type":7,"timestamp":1563951585000,"token":"5ce60ee4377f5461bc9798a5"}}'
+    chat '{"data":{"messageId":"873e686d-dde3-4cfb-aa65-9e6719212996","chatId":"5cd27487bd6faa1c4ef3b963","roomTopic":"咨询1群-10期测试开发-霍格沃兹","roomId":"5cd27487bd6faa1c4ef3b962","contactName":"","contactId":"","payload":{"subPayload":{"inviteeList":[{"displayName":"陆同学","wxid":"wxid_xwwgy2v2ejqm21","isSelf":false}],"inviter":{"displayName":"霍格沃兹测试学院小助手","wxid":"wxid_8upw9ft10m8r22","isSelf":false},"timestamp":1564673668783},"wechatSystemPayloadType":0},"type":10001,"timestamp":1564673668798,"token":"5ce60ee4377f5461bc9798a5"}}'
 
 }
 
-update_version() {
+update_remote() {
     . /Users/seveniruby/projects/bashgems/lib/redmine.sh
+    ssh root@docker.testing-studio.com "cp /root/redmine/redmine.sh /root/redmine/redmine.$(date +%Y%m%d%H%M).sh"
     scp /Users/seveniruby/projects/bashgems/lib/redmine.sh root@docker.testing-studio.com:/root/redmine/
+}
+update_self() {
+    . /Users/seveniruby/projects/bashgems/lib/redmine.sh
 }
