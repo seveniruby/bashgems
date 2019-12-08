@@ -32,3 +32,22 @@ screen_ex() {
 ps_ex() {
 	ps -o uname,pid,ppid,thcount,ni,pri,psr,pcpu,pmem,rss,vsz,sz,start_time,time,comm,c,command "$@"
 }
+
+parallel() {
+	[ $# -lt 2 ] && ls | echo parallel 10 "echo $index" && return
+	local p=$1
+	shift
+	local cmd="$@"
+	echo cmd="$cmd"
+	echo parallel=$p
+	while true; do
+		local count=$(jobs -l | grep Running | wc -l)
+		echo running count=$count
+		if ((count >= p)); then
+			sleep 1
+		else
+			echo "run $cmd"
+			eval $cmd &
+		fi
+	done
+}
