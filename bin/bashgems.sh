@@ -42,7 +42,7 @@ bashgems_install() {
 		if [ -d ~/.bashgems ]; then
 			cd ~/.bashgems
 			git pull
-            cd $OLDPWD
+			cd $OLDPWD
 		else
 			git clone https://github.com/seveniruby/bashgems.git ~/.bashgems
 		fi
@@ -56,26 +56,22 @@ bashgems_install() {
 }
 
 logo() {
-	echo '
-#     __            __            __
-#    / /____  _____/ /____  _____/ /_  ____  ____ ___  ___
-#   / __/ _ \/ ___/ __/ _ \/ ___/ __ \/ __ \/ __ `__ \/ _ \
-#  / /_/  __(__  ) /_/  __/ /  / / / / /_/ / / / / / /  __/
-#  \__/\___/____/\__/\___/_/  /_/ /_/\____/_/ /_/ /_/\___/
-'
+	:
 }
+
+#default library
 bashgems_init() {
-	logo
-	echo "TesterHome: https://testerhome.com"
-	echo "TTF: https://testerhome.com/topics/15522"
-	echo "BashGems: https://github.com/seveniruby/bashgems.git"
-	echo
 	[ -f $BASHGEMS_HOME/lib/shellex.sh ] && . $BASHGEMS_HOME/lib/shellex.sh
-	[ -f $BASHGEMS_HOME/lib/hogwarts.sh ] && . $BASHGEMS_HOME/lib/hogwarts.sh
+	# mo only for bash
+	# [ -f $BASHGEMS_HOME/lib/cgi/mo ] && . $BASHGEMS_HOME/lib/cgi/mo
+	[ -f $BASHGEMS_HOME/lib/hogwarts/hogwarts.sh ] && . $BASHGEMS_HOME/lib/hogwarts/hogwarts.sh
 	:
 }
 
 #########################
-[ -z "$BASHGEMS_HOME" ] && export BASHGEMS_HOME=~/.bashgems
-bashgems_init "$@"
-:
+export BASHGEMS_HOME=$(cd $( [ -n "$BASH" ] && dirname $BASH_SOURCE; [ -n "$ZSH_NAME" ] && dirname $0 )/../ && echo $PWD)
+bashgems_init
+
+for f in "$@"; do
+	$f
+done
